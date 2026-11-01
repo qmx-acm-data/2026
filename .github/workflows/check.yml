@@ -1,0 +1,68 @@
+name: 检查
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 检查收录规范（仅提示，不阻止合并）
+        run: |
+          python3 - <<'PY'
+          import os, re
+
+          root = "."
+          skip_dirs = {".git", ".github", "templates"}
+          # 只检查被收录的内容文件，根目录的说明文档不参与
+          content_dirs = ("problems", "algorithms")
+
+          name_re = re.compile(r"^\[题解\](CF|AT|LG|NC|Oth)\S.*\.md$")
+          required = ["pid", "title", "platform", "tags", "author", "date"]
+
+          warn = []
+          for dirpath, dirnames, filenames in os.walk(root):
+              dirnames[:] = [d for d in dirnames if d not in skip_dirs]
+              rel_parts = os.path.relpath(dirpath, root).split(os.sep)
+              in_problems = "problems" in rel_parts
+              in_algo = "algorithms" in rel_parts
+              if not (in_problems or in_algo):
+                  continue
+
+              for fn in filenames:
+                  if not fn.endswith(".md"):
+                      continue
+                  p = os.path.join(dirpath, fn)
+                  if in_problems and not name_re.match(fn):
+                      warn.append(f"{p}: 文件名不符合 [题解]平台题号 题名称.md")
+                  if in_algo and re.search(r"\s", fn):
+                      warn.append(f"{p}: 算法笔记文件名含空格")
+
+                  txt = open(p, encoding="utf-8").read()
+                  if not txt.startswith("---\n"):
+                      warn.append(f"{p}: 缺少 front matter")
+                  else:
+                      end = txt.find("\n---", 4)
+                      head = txt[4:end] if end > 0 else ""
+                      missing = [k for k in required
+                                 if not re.search(rf"^{k}\s*:", head, re.M)]
+                      if missing:
+                          warn.append(f"{p}: front matter 缺字段 {', '.join(missing)}")
+
+                  if re.search(r"\\[()\[\]]", txt):
+                      warn.append(f"{p}: 使用了 \\( \\) 或 \\[ \\] 定界符")
+                  if txt.count("```") % 2 != 0:
+                      warn.append(f"{p}: 代码围栏未闭合")
+
+          if warn:
+              print(f"::warning::发现 {len(warn)} 处不符合规范（仅提示，不阻止合并）")
+              for w in warn:
+                  print("WARN " + w)
+                  print(f"::warning file={w.split(':')[0]}::{w}")
+          else:
+              print("未发现规范问题")
+          PY

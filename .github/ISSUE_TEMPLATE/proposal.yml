@@ -1,0 +1,38 @@
+name: 提案
+description: 分类有误、内容有错、请求补充
+title: "[提案] "
+labels: ["提案"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 类型
+      options:
+        - 分类有误
+        - 内容有错
+        - 请求补充
+    validations:
+      required: true
+
+  - type: input
+    id: file
+    attributes:
+      label: 涉及文件
+      description: 写文件路径或题目名，如 problems/CF/[题解]CF2277C 树形DP.md
+      placeholder: problems/CF/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 哪里有问题，为什么
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 建议改法
+      description: 你希望怎么改

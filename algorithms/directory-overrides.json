@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "overrides": [
+    {
+      "id": "algorithm-content-feishu-part-1-1",
+      "label": "模拟",
+      "fullLabel": "模拟",
+      "color": "basic",
+      "scope": "枚举与模拟的标准定义、前置概念、典型基本实现和适用条件；扩展应用按子项或具体题目另评。"
+    }
+  ]
+}
